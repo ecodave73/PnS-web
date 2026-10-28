@@ -4,7 +4,7 @@
 
 **Type**: Public marketing website
 
-**Status**: Build verified; production release configured
+**Status**: Live in production
 
 ## What It Does
 
@@ -29,6 +29,9 @@
 - Worker name: `paint-and-sip-events`
 - Intended domain: `paintandsipevents.com.au`
 - Production routes: `paintandsipevents.com.au/*` and `www.paintandsipevents.com.au/*` over the existing proxied DNS records.
+- Production URL: `https://paintandsipevents.com.au/`
+- Workers preview: `https://paint-and-sip-events.david-d5b.workers.dev`
+- Cloudflare version deployed 2026-10-28: `4a234a9f-5793-4fda-b4ca-04fd1cf928ba`.
 
 ## Assets
 
