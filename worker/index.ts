@@ -149,7 +149,7 @@ async function sendEnquiry(enquiry: Enquiry, apiKey: string, fetcher: typeof fet
       },
       body: JSON.stringify({
         from: "Paint & Sip Events <enquiries@paintandsipevents.com.au>",
-        to: ["hello@anthonypietersartist.com"],
+        to: ["enquiries@paintandsipevents.com.au"],
         reply_to: enquiry.email,
         subject: `Paint & Sip Events enquiry — ${enquiry.experience}`,
         text: emailText(enquiry),

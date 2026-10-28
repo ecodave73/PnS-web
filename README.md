@@ -30,21 +30,21 @@ The deploy script builds and then publishes to the `paint-and-sip-events` Worker
 
 ## Enquiry behaviour
 
-The frontend is deliberately unchanged for this release: it still prepares an email in the visitor's own email application, addressed to `hello@anthonypietersartist.com`. This keeps existing enquiries available until Resend credentials and real delivery have been verified.
+The frontend submits same-origin JSON directly to `/api/enquiry`; no email application is needed. It shows pending/success/error feedback, blocks duplicate in-flight submissions, retains filled details on errors, and provides an explicit `mailto:enquiries@paintandsipevents.com.au` fallback. Native validation and the backend schema enforce required fields and limits. Visitor details are not stored in an application database or browser persistence; they are processed by Resend and retained by the receiving mailbox/provider as applicable.
 
 The new backend provides:
 
 - `GET /api/enquiry/status`: returns only `{ "configured": true | false }` according to whether `RESEND_API_KEY` exists. This is a configuration check, not proof that the key works or that mail reaches an inbox.
-- `POST /api/enquiry`: sends a plain-text Resend email to the fixed recipient `hello@anthonypietersartist.com`, from `Paint & Sip Events <enquiries@paintandsipevents.com.au>`, with the validated visitor email as `reply_to`.
+- `POST /api/enquiry`: sends a plain-text Resend email to the fixed recipient `enquiries@paintandsipevents.com.au`, from `Paint & Sip Events <enquiries@paintandsipevents.com.au>`, with the validated visitor email as `reply_to`.
 - Required string fields: `name`, `email`, `phone`, `experience`, `date`, `location`, `guests`, `eventType`. Optional string fields: `message`, `website` (honeypot; must remain empty). `experience` must match an existing frontend option, and `guests` must be an integer string from 1–10,000. Unknown fields are rejected.
 - Exact same-origin root/`www` checks, JSON-only bodies, 16 KiB body limit, field limits, a 10-second body/provider timeout, a honeypot and a five-request/minute per-IP Cloudflare rate limiter. The IP is hashed before use as a rate-limit key and not logged. Cloudflare rate limits are approximate and per location, not a strict global abuse budget.
-- Missing credentials return HTTP 503. Rejected/uncertain provider receipts return HTTP 502, never a false success. The backend stores no enquiry database; Resend processes email details, so privacy copy must reflect that when direct submission is connected.
+- Missing credentials return HTTP 503. Rejected/uncertain provider receipts return HTTP 502, never a false success. The backend stores no enquiry database. The browser waits up to 20 seconds and warns about uncertain delivery before retrying if it cannot confirm success.
 
-### Configure Resend after the backend release
+### Resend configuration and release verification
 
-After deploying the backend-enabled Worker, add a **Secret** named `RESEND_API_KEY` in Cloudflare **Workers & Pages → paint-and-sip-events → Settings → Variables and Secrets**. Use a sending key authorised for `paintandsipevents.com.au`. Never put the key in GitHub, frontend code, or chat. For local testing only, an ignored `.dev.vars` may contain the secret; it is never uploaded automatically.
+A **Secret** named `RESEND_API_KEY` is already provisioned on the production Worker. If setting up another environment, add it securely in Cloudflare **Workers & Pages → paint-and-sip-events → Settings → Variables and Secrets**. Use a sending key authorised for `paintandsipevents.com.au`. Never put the key in GitHub, frontend code, or chat. For local testing only, an ignored `.dev.vars` may contain the secret; it is never uploaded automatically.
 
-Then verify `/api/enquiry/status`, send one authorised real test enquiry, check provider acceptance and recipient delivery, and only then update the frontend to use direct submission. `status.configured` alone is not a delivery test. No real email was sent by the included tests.
+On release, verify `/api/enquiry/status`, submit one authorised real test from the browser, and check both provider acceptance and receipt at `enquiries@paintandsipevents.com.au`. `status.configured` alone is not a delivery test. Both new cPanel mailboxes received external tests per the owner; Resend-to-enquiries delivery still needs verification after deploying the new recipient. No real email was sent by the included tests.
 
 ### Backend development and types
 

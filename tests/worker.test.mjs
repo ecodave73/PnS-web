@@ -103,7 +103,7 @@ test("provider acceptance sends fixed addresses, validated reply-to and plain te
   assert.equal(response.status, 200);
   assert.equal((await response.json()).success, true);
   assert.equal(sent.from, "Paint & Sip Events <enquiries@paintandsipevents.com.au>");
-  assert.deepEqual(sent.to, ["hello@anthonypietersartist.com"]);
+  assert.deepEqual(sent.to, ["enquiries@paintandsipevents.com.au"]);
   assert.equal(sent.reply_to, valid.email);
   assert.ok(!("html" in sent));
   assert.match(sent.text, /Name: Test Guest/);

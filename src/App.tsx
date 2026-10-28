@@ -1,4 +1,5 @@
-import { FormEvent, useEffect, useId, useState } from "react";
+import { FormEvent, useEffect, useId, useRef, useState } from "react";
+import { ENQUIRY_EMAIL, submitEnquiry } from "./enquiry";
 
 const NAV_ITEMS = [
   ["Experiences", "#experiences"],
@@ -244,7 +245,7 @@ function App() {
         <BrandMark compact />
         <div className="footer__contact">
           <a href="tel:+61450922695">0450 922 695</a>
-          <a href="mailto:hello@anthonypietersartist.com">hello@anthonypietersartist.com</a>
+          <a href={`mailto:${ENQUIRY_EMAIL}`}>{ENQUIRY_EMAIL}</a>
         </div>
         <div className="footer__meta">
           <span>Brisbane · Gold Coast · Byron Bay</span>
@@ -305,25 +306,34 @@ function BackToTop() {
 function EnquiryForm() {
   const id = useId();
   const [experience, setExperience] = useState("Art Master Class");
+  const [state, setState] = useState<"idle" | "sending" | "success" | "error">("idle");
+  const [error, setError] = useState("");
+  const sending = useRef(false);
+  const feedback = useRef<HTMLDivElement>(null);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    if (state === "success" || state === "error") feedback.current?.focus();
+  }, [state]);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const lines = [
-      `Name: ${form.get("name") ?? ""}`,
-      `Email: ${form.get("email") ?? ""}`,
-      `Phone: ${form.get("phone") ?? ""}`,
-      `Experience: ${form.get("experience") ?? ""}`,
-      `Preferred date and time: ${form.get("date") ?? ""}`,
-      `Location: ${form.get("location") ?? ""}`,
-      `Guest count: ${form.get("guests") ?? ""}`,
-      `Event type: ${form.get("eventType") ?? ""}`,
-      "",
-      "Message:",
-      String(form.get("message") ?? ""),
-    ];
-    const subject = `Paint & Sip Events enquiry — ${form.get("experience") ?? "Event"}`;
-    window.location.href = `mailto:hello@anthonypietersartist.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join("\n"))}`;
+    const form = event.currentTarget;
+    if (sending.current || !form.reportValidity()) return;
+    const details = new FormData(form);
+    sending.current = true;
+    setError("");
+    setState("sending");
+    try {
+      await submitEnquiry(details);
+      form.reset();
+      setExperience("Art Master Class");
+      setState("success");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Your enquiry could not be sent. Please email or call Anthony directly.");
+      setState("error");
+    } finally {
+      sending.current = false;
+    }
   };
 
   return (
@@ -339,13 +349,15 @@ function EnquiryForm() {
         </div>
       </div>
 
-      <form className="form" onSubmit={handleSubmit}>
+      <form className="form" method="post" action="/api/enquiry" onSubmit={handleSubmit} aria-busy={state === "sending"}>
+        <fieldset className="form__fields" disabled={state === "sending"}>
+        <legend className="visually-hidden">Your event enquiry</legend>
         <div className="form__row">
-          <label htmlFor={`${id}-name`}>Name<input id={`${id}-name`} name="name" autoComplete="name" required /></label>
-          <label htmlFor={`${id}-email`}>Email<input id={`${id}-email`} name="email" type="email" autoComplete="email" inputMode="email" required /></label>
+          <label htmlFor={`${id}-name`}>Name<input id={`${id}-name`} name="name" autoComplete="name" maxLength={100} required /></label>
+          <label htmlFor={`${id}-email`}>Email<input id={`${id}-email`} name="email" type="email" autoComplete="email" inputMode="email" maxLength={254} required /></label>
         </div>
         <div className="form__row">
-          <label htmlFor={`${id}-phone`}>Phone<input id={`${id}-phone`} name="phone" type="tel" autoComplete="tel" inputMode="tel" required /></label>
+          <label htmlFor={`${id}-phone`}>Phone<input id={`${id}-phone`} name="phone" type="tel" autoComplete="tel" inputMode="tel" minLength={5} maxLength={40} required /></label>
           <label htmlFor={`${id}-experience`}>Experience
             <select id={`${id}-experience`} name="experience" value={experience} onChange={(event) => setExperience(event.target.value)} required>
               <option>Art Master Class</option>
@@ -356,20 +368,31 @@ function EnquiryForm() {
           </label>
         </div>
         <div className="form__row">
-          <label htmlFor={`${id}-date`}>Preferred date &amp; time<input id={`${id}-date`} name="date" placeholder="e.g. 14 March, 5:30pm" required /></label>
-          <label htmlFor={`${id}-location`}>Location<input id={`${id}-location`} name="location" autoComplete="address-level2" placeholder="Suburb or venue" required /></label>
+          <label htmlFor={`${id}-date`}>Preferred date &amp; time<input id={`${id}-date`} name="date" maxLength={120} placeholder="e.g. 14 March, 5:30pm" required /></label>
+          <label htmlFor={`${id}-location`}>Location<input id={`${id}-location`} name="location" autoComplete="address-level2" maxLength={200} placeholder="Suburb or venue" required /></label>
         </div>
         <div className="form__row">
-          <label htmlFor={`${id}-guests`}>Number of guests<input id={`${id}-guests`} name="guests" type="number" min="1" inputMode="numeric" required /></label>
-          <label htmlFor={`${id}-event-type`}>Event type<input id={`${id}-event-type`} name="eventType" placeholder="Birthday, wedding, opening…" required /></label>
+          <label htmlFor={`${id}-guests`}>Number of guests<input id={`${id}-guests`} name="guests" type="number" min="1" max="10000" step="1" inputMode="numeric" required /></label>
+          <label htmlFor={`${id}-event-type`}>Event type<input id={`${id}-event-type`} name="eventType" maxLength={120} placeholder="Birthday, wedding, opening…" required /></label>
         </div>
         <label htmlFor={`${id}-message`}>Anything else Anthony should know?
-          <textarea id={`${id}-message`} name="message" rows={5} placeholder={experience === "Art Master Class" ? "Tell us your preferred art style and what you have in mind for the setting." : "Tell us about your event, timing and illustration preferences."} />
+          <textarea id={`${id}-message`} name="message" rows={5} maxLength={4000} placeholder={experience === "Art Master Class" ? "Tell us your preferred art style and what you have in mind for the setting." : "Tell us about your event, timing and illustration preferences."} />
         </label>
-        <div className="form__submit">
-          <button className="button button--light" type="submit">Prepare my enquiry <ArrowIcon /></button>
-          <p>This prepares an email in your own mail app. Your details are not stored by this website.</p>
+        <div className="form__trap" aria-hidden="true">
+          <label htmlFor={`${id}-website`}>Leave this field empty<input id={`${id}-website`} name="website" tabIndex={-1} autoComplete="off" maxLength={200} /></label>
         </div>
+        <div className="form__submit">
+          <button className="button button--light" type="submit">{state === "sending" ? "Sending enquiry…" : "Send my enquiry"} <ArrowIcon /></button>
+          <p>Your details are emailed securely to Anthony via Resend so he can respond to your enquiry.</p>
+        </div>
+        </fieldset>
+        <div ref={feedback} className={`form__feedback form__feedback--${state}`} role={state === "error" ? "alert" : "status"} tabIndex={-1} aria-atomic="true">
+          {state === "sending" && <p>Sending your enquiry. Please keep this page open.</p>}
+          {state === "success" && <p>Thank you—your enquiry has been sent to Anthony. He will be in touch to discuss your event.</p>}
+          {state === "error" && <p>{error}</p>}
+        </div>
+        <p className="form__alternative">Prefer email? <a href={`mailto:${ENQUIRY_EMAIL}`}>{ENQUIRY_EMAIL}</a></p>
+        <noscript><p>Please enable JavaScript to use this form, or email Anthony using the link above.</p></noscript>
       </form>
     </section>
   );
