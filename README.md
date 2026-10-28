@@ -44,7 +44,7 @@ The new backend provides:
 
 A **Secret** named `RESEND_API_KEY` is already provisioned on the production Worker. If setting up another environment, add it securely in Cloudflare **Workers & Pages → paint-and-sip-events → Settings → Variables and Secrets**. Use a sending key authorised for `paintandsipevents.com.au`. Never put the key in GitHub, frontend code, or chat. For local testing only, an ignored `.dev.vars` may contain the secret; it is never uploaded automatically.
 
-On release, verify `/api/enquiry/status`, submit one authorised real test from the browser, and check both provider acceptance and receipt at `enquiries@paintandsipevents.com.au`. `status.configured` alone is not a delivery test. Both new cPanel mailboxes received external tests per the owner; Resend-to-enquiries delivery still needs verification after deploying the new recipient. No real email was sent by the included tests.
+On release, verify `/api/enquiry/status`, submit one authorised real test from the browser, and check both provider acceptance and receipt at `enquiries@paintandsipevents.com.au`. `status.configured` alone is not a delivery test. The 2026-10-28 release passed live browser submission and Resend acceptance for labelled test `PNS-FORM-20261028-1642`; recipient inbox receipt still needs owner confirmation. Both new cPanel mailboxes previously received external tests per the owner. The automated test suite uses mocks and sends no real email. See `APP.md` for release, verification and rollback details.
 
 ### Backend development and types
 

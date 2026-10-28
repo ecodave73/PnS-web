@@ -6,7 +6,7 @@
 
 **Status**: Live in production
 
-**Pending local release**: User approved direct Resend submissions and the fixed recipient `enquiries@paintandsipevents.com.au` on 2026-10-28. Implementation is prepared locally; this task has not committed, pushed or deployed it.
+**Latest release — 2026-10-28**: Approved direct Resend submissions to `enquiries@paintandsipevents.com.au` are deployed. Source commit `7a400e7` is pushed to `main`. A labelled live browser test was accepted by Resend; recipient inbox receipt remains unconfirmed.
 
 ## What It Does
 
@@ -36,7 +36,9 @@
 - Production routes: `paintandsipevents.com.au/*` and `www.paintandsipevents.com.au/*` over the existing proxied DNS records.
 - Production URL: `https://paintandsipevents.com.au/`
 - Workers preview: `https://paint-and-sip-events.david-d5b.workers.dev`
-- Pre-release active Cloudflare version, confirmed 2026-10-28: `0f99f962-20cb-481f-ab35-e75e122f6d54` (includes the provisioned Resend secret). Retain as the rollback reference; record the new version after release verification.
+- Pre-release Cloudflare rollback reference, confirmed 2026-10-28: `0f99f962-20cb-481f-ab35-e75e122f6d54` (includes the provisioned Resend secret).
+- Active release version: `c021c28b-e460-4b5e-a278-29b9c2082540`, deployed 2026-10-28 at 06:40 UTC to 100% of traffic. No DNS, secret or binding changes were made.
+- Emergency rollback from this workspace: `npx wrangler rollback 0f99f962-20cb-481f-ab35-e75e122f6d54 --message "Restore pre-direct-form release"`. This restores the earlier mailto frontend/recipient; it does not undo DNS or mail-provider changes.
 
 ## Assets
 
@@ -51,5 +53,6 @@
 - Generated binding/runtime types: `npm run types`; frontend and Worker type checks: `npm run check`.
 - Deterministic tests: `npm test`; frontend submission contract and Worker safeguards use mock provider calls only, no real mail sent.
 - Frontend uses native required/type/length/range validation plus authoritative backend validation, a honeypot, one in-flight submission, disabled controls while sending, accessible live/focused feedback, explicit provider success checks and a 20-second client timeout. Backend retains its shorter provider timeout and all existing abuse controls.
-- Both `hello@paintandsipevents.com.au` and `enquiries@paintandsipevents.com.au` received external test mail successfully per David. Main agent must verify the newly deployed form and actual Resend-to-enquiries delivery separately; API acceptance is not inbox confirmation.
+- Both `hello@paintandsipevents.com.au` and `enquiries@paintandsipevents.com.au` received external test mail successfully per David. Receipt of the new Resend-to-enquiries form test remains to be confirmed separately; API acceptance is not inbox confirmation.
 - Pending-release verification 2026-10-28: sequential check, lint (typecheck alias), production build, 18 mocked tests (6 browser-contract + 12 Worker), Wrangler dry-run and git diff whitespace check passed. Local built-site browser smoke verified native required-field blocking, same-origin payload, pending/disabled state, duplicate in-flight blocking, success reset/focus, 429 error retention/alert/focus, and 390px mobile no-overflow/email link. Browser transport was explicitly mocked; no real email was sent. Screenshots: `/tmp/opencode/pns-form-mobile-error.png`, `/tmp/opencode/pns-form-desktop.png`.
+- Production verification 2026-10-28: root/www HTTP 200, both serve the new JS asset `/assets/index-9l7k4M7i.js`, status configured:true, and deployment status confirms the new version at 100%. Exactly one labelled real browser enquiry (`PNS-FORM-20261028-1642`, no booking requested) returned HTTP 200/success:true, reset the form and focused its success feedback. The Worker tail recorded `enquiry_accepted`, request ID `90d2ca62-dea1-4546-84d5-d7e01861e9ee`, outcome ok and no exceptions. A separate www/390px invalid-phone test was rejected without sending mail, retained details and focused its error alert; no horizontal overflow or browser errors. Evidence: `/tmp/opencode/pns-production-success-20261028.png`, `/tmp/opencode/pns-production-mobile-validation-20261028.png`. Remaining check: David confirms the labelled email reached the enquiries inbox.
