@@ -6,12 +6,12 @@
   "preview_urls": true,
   "routes": [
     {
-      "pattern": "paintandsipevents.com.au",
-      "custom_domain": true
+      "pattern": "paintandsipevents.com.au/*",
+      "zone_name": "paintandsipevents.com.au"
     },
     {
-      "pattern": "www.paintandsipevents.com.au",
-      "custom_domain": true
+      "pattern": "www.paintandsipevents.com.au/*",
+      "zone_name": "paintandsipevents.com.au"
     }
   ],
   "assets": {

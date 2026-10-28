@@ -28,7 +28,7 @@
 
 - Worker name: `paint-and-sip-events`
 - Intended domain: `paintandsipevents.com.au`
-- Custom domains: `paintandsipevents.com.au` and `www.paintandsipevents.com.au`.
+- Production routes: `paintandsipevents.com.au/*` and `www.paintandsipevents.com.au/*` over the existing proxied DNS records.
 
 ## Assets
 

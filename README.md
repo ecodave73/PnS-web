@@ -19,7 +19,7 @@ npm run build
 
 ## Cloudflare Workers
 
-The site is configured as an assets-only Worker using `wrangler.jsonc`, with the root and `www` hostnames declared as Worker custom domains.
+The site is configured as an assets-only Worker using `wrangler.jsonc`, with root and `www` Worker routes over the existing proxied DNS records.
 
 ```bash
 npm run deploy
