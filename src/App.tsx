@@ -44,16 +44,14 @@ const livePackages = [
 
 function BrandMark({ compact = false }: { compact?: boolean }) {
   return (
-    <span className={`brand ${compact ? "brand--compact" : ""}`} aria-label="Paint and Sip Events">
-      <svg className="brand__mark" viewBox="0 0 54 54" role="img" aria-hidden="true">
-        <circle cx="27" cy="27" r="25.25" fill="none" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M18 40V14h10.6c6.7 0 10.6 3.15 10.6 8.35 0 5.45-4.2 8.65-11.1 8.65h-4.2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        <path d="M34.5 16.5c-1.1 2.65-.35 5 1.75 6.85 2 1.75 2.65 4.15 1.55 6.6-1.45 3.3-5.25 4.85-9.25 3.85" fill="none" stroke="#8f302d" strokeWidth="2.15" strokeLinecap="round" />
-      </svg>
-      <span className="brand__words">
-        <strong>Paint &amp; Sip</strong>
-        <span>Events</span>
-      </span>
+    <span className={`brand ${compact ? "brand--compact" : ""}`}>
+      <img
+        className="brand__approved-logo"
+        src={compact ? "/images/paint-sip-approved-dark.png" : "/images/paint-sip-approved-light.png"}
+        alt="Paint & Sip Events logo"
+        width="800"
+        height="215"
+      />
     </span>
   );
 }
@@ -243,17 +241,64 @@ function App() {
       </main>
 
       <footer className="footer">
-        <BrandMark />
+        <BrandMark compact />
         <div className="footer__contact">
           <a href="tel:+61450922695">0450 922 695</a>
           <a href="mailto:hello@anthonypietersartist.com">hello@anthonypietersartist.com</a>
         </div>
         <div className="footer__meta">
           <span>Brisbane · Gold Coast · Byron Bay</span>
+          <a className="footer__top" href="#top">Back to top ↑</a>
           <span>© {new Date().getFullYear()} Paint &amp; Sip Events</span>
         </div>
       </footer>
+      <BackToTop />
     </div>
+  );
+}
+
+function BackToTop() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const hero = document.querySelector<HTMLElement>(".hero");
+        const enquiry = document.getElementById("enquire");
+        const enquiryBounds = enquiry?.getBoundingClientRect();
+        const overForm = enquiryBounds && enquiryBounds.top < window.innerHeight && enquiryBounds.bottom > 0;
+        const active = document.activeElement;
+        const editing = active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active instanceof HTMLSelectElement;
+        setVisible(window.scrollY > (hero?.offsetHeight ?? 800) && !overForm && !editing);
+      });
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    document.addEventListener("focusin", update);
+    document.addEventListener("focusout", update);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      document.removeEventListener("focusin", update);
+      document.removeEventListener("focusout", update);
+    };
+  }, []);
+
+  return (
+    <a
+      className={`back-to-top${visible ? " back-to-top--visible" : ""}`}
+      href="#top"
+      aria-label="Back to top"
+      aria-hidden={!visible}
+      tabIndex={visible ? 0 : -1}
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 11 6-6 6 6M12 5v14" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      <span>Top</span>
+    </a>
   );
 }
 

@@ -1,6 +1,7 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "paint-and-sip-events",
+  "main": "worker/index.ts",
   "compatibility_date": "2026-10-28",
   "workers_dev": true,
   "preview_urls": true,
@@ -15,9 +16,19 @@
     }
   ],
   "assets": {
-    "directory": "./dist"
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
   },
+  "ratelimits": [
+    {
+      "name": "ENQUIRY_RATE_LIMITER",
+      "namespace_id": "734102816",
+      "simple": { "limit": 5, "period": 60 }
+    }
+  ],
   "observability": {
-    "enabled": true
+    "enabled": true,
+    "traces": { "enabled": true }
   }
 }
