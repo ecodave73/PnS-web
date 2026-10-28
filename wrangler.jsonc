@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "paint-and-sip-events",
+  "compatibility_date": "2026-10-28",
+  "workers_dev": true,
+  "preview_urls": true,
+  "routes": [
+    {
+      "pattern": "paintandsipevents.com.au",
+      "custom_domain": true
+    },
+    {
+      "pattern": "www.paintandsipevents.com.au",
+      "custom_domain": true
+    }
+  ],
+  "assets": {
+    "directory": "./dist"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
